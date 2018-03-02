@@ -9,7 +9,8 @@ import logging
 import pymongo
 
 class MongoPipeline(object):
-    collection_name = 'rezepte'
+    # collection_name = 'rezepte'
+    collection_name = 'test'
 
     def __init__(self, mongo_uri, mongo_db):
         self.mongo_uri = mongo_uri
@@ -35,13 +36,13 @@ class MongoPipeline(object):
 
     def process_item(self, item, spider):
         ## how to handle each post
-        dup_check = self.db[self.collection_name].find({'id':item['id']}).count()
-        if dup_check == 0 :
-            self.db[self.collection_name].insert(dict(item))
-            logging.debug("Post added to MongoDB")
-        else:
-           logging.debug("Post already exists")
-        return item
+        # dup_check = self.db[self.collection_name].find({'id':item['id']}).count()
+        # if dup_check == 0 :
+        self.db[self.collection_name].insert(dict(item))
+        logging.debug("Post added to MongoDB")
+        # else:
+           # logging.debug("Post already exists")
+        # return item
 
         # self.db[self.collection_name].insert(dict(item))
         # logging.debug("Post added to MongoDB")
