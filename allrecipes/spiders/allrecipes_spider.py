@@ -1,56 +1,85 @@
+import json
 import os
 import re
 import urllib
-import json
+from decimal import Decimal
 
-from scrapy.spiders import CrawlSpider, Rule
+from allrecipes.items import Category, Ingredient, Nutrition, Recipe, Review
+from scrapy.http.request import Request
 from scrapy.linkextractors import LinkExtractor
 from scrapy.selector import Selector
-from scrapy.http.request import Request
-
-from allrecipes.items import Recipe, Ingredient, Category, Nutrition, Review
+from scrapy.spiders import CrawlSpider, Rule
 
 
 class AllrecipesSpider(CrawlSpider):
     name = 'allrecipes'
-    #allowed_domains = ['allrecipes.com']
-    download_delay = 3
-
+    # allowed_domains = ['allrecipes.com']
+    # download_delay = 3
 
     start_urls = [
         # 'http://allrecipes.com/recipes/17562/dinner/',
         # 'http://allrecipes.com/recipes/80/main-dish/',
+        # 'https://www.allrecipes.com/recipes/95/pasta-and-noodles/',
         'https://www.allrecipes.com/recipes/80/main-dish/',
-        # 'http://allrecipes.com/recipes/1227/everyday-cooking/vegan/',
-        # 'https://www.allrecipes.com/recipes/87/everyday-cooking/vegetarian/',
+        'https://www.allrecipes.com/recipes/1227/everyday-cooking/vegan/',
+        'https://www.allrecipes.com/recipes/87/everyday-cooking/vegetarian/',
     ]
 
     rules = (
         # Follow pagination
-        # Rule(LinkExtractor(restrict_xpaths="//link[contains(@href, 'page')]"), follow=True, callback='parse_recipe'),
-        # Rule(LinkExtractor(restrict_xpaths=('//link[@rel="next"]',)), follow=True, callback='parse_recipe'),
-        # Rule(LinkExtractor(allow=(), restrict_css=('head > link:nth-child(13)',)), follow=True, callback='parse_recipe'),
-        # Rule(LinkExtractor(allow=(), restrict_css=('head > link:nth-child(13)',)), follow=True, callback='parse_recipe'),
-        # Rule(LinkExtractor(restrict_xpaths="//html/head/link[3]"), follow=True, callback='parse_recipe'),
-        # Rule(LinkExtractor(allow=(r'recipes\/.+\/\?page=2',)), follow=True, callback='parse_recipe'),
-        # Rule(LinkExtractor(allow=(r'recipes/.+/\?page=\d+',)), follow=True, callback='parse_recipe'),
-        # Rule(LinkExtractor(allow=(r'.com/recipes/.+/\?page=\d+')), follow=True, callback='parse_recipe'),
-        Rule(LinkExtractor(tags=('button'), attrs=('href',)), follow=True),
-
-
+        # Rule(
+        #     LinkExtractor(restrict_xpaths="//link[contains(@href, 'page')]"),
+        #     follow=True,
+        #     callback='parse_recipe'),
+        # Rule(
+        #     LinkExtractor(restrict_xpaths=('//link[@rel="next"]', )),
+        #     follow=True,
+        #     callback='parse_recipe'),
+        # Rule(
+        #     LinkExtractor(
+        #         allow=(), restrict_css=('head > link:nth-child(13)', )),
+        #     follow=True,
+        #     callback='parse_recipe'),
+        # Rule(
+        #     LinkExtractor(
+        #         allow=(), restrict_css=('head > link:nth-child(13)', )),
+        #     follow=True,
+        #     callback='parse_recipe'),
+        # Rule(
+        #     LinkExtractor(restrict_xpaths="//html/head/link[3]"),
+        #     follow=True,
+        #     callback='parse_recipe'),
+        # Rule(
+        #     LinkExtractor(allow=(r'recipes\/.+\/\?page=2', )),
+        #     follow=True,
+        #     callback='parse_recipe'),
+        # Rule(
+        #     LinkExtractor(allow=(r'recipes/.+/\?page=\d+', )),
+        #     follow=True,
+        #     callback='parse_recipe'),
+        # Rule(
+        #     LinkExtractor(allow=(r'.com/recipes/.+/\?page=\d+')),
+        #     follow=True,
+        #     callback='parse_recipe'),
+        # Rule(
+        #     LinkExtractor(
+        #         tags=('button'), attrs=('href', )), follow=True),
 
         # Extract recipes
-        Rule(LinkExtractor(allow=(r'recipe/\d+.*',)), callback='parse_recipe')
-    )
+        Rule(
+            LinkExtractor(allow=(r'recipe/\d+.*', )), callback='parse_recipe'))
 
     def parse_recipe(self, response):
         print('Processing..' + response.url)
 
-        cooke_id = response.headers.getlist('Set-Cookie')[1].split(";")[0].split("=")
+        cooke_id = response.headers.getlist('Set-Cookie')[1].split(";")[
+            0].split("=")
 
         headers = {
             'accept': "*/*",
-            'user-agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36",
+            'user-agent':
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36"
+            + "(KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36",
             'Authorization': "Bearer " + cooke_id[1] + "=="
         }
 
@@ -58,8 +87,8 @@ class AllrecipesSpider(CrawlSpider):
         m = re.search('\/recipe\/(\d+)', recipe_url)
         recipe_id = m.group(1)
 
-
-        category_html = response.xpath("/html/body/script[7]/text()").extract()[0]
+        category_html = response.xpath("/html/body/script[7]/text()").extract(
+        )[0]
         category_html.strip()
 
         m2 = re.search('RdpInferredTastePrefs\s=\s+(.*])', category_html)
@@ -70,10 +99,7 @@ class AllrecipesSpider(CrawlSpider):
         string_cat = string_cat.replace("\"", "")
         cat_list = string_cat.split(",")
 
-
-        #hxs = Selector(response)
-
-
+        # hxs = Selector(response)
 
         recipe = Recipe()
         categories = []
@@ -85,15 +111,22 @@ class AllrecipesSpider(CrawlSpider):
 
         recipe["categories"] = categories
 
-        # review_count = response.xpath('//span[@class="review-count"]/text()').extract()[0].strip().split(' ')[0]
-
-        # review_url = "http://allrecipes.com/recipe/getreviews/?recipeid="+ recipe_id + "&pagenumber=1&pagesize=" + review_count + "&recipeType=Recipe&sortBy=MostHelpful"
+        # review_count = response.xpath(
+        #     '//span[@class="review-count"]/text()').extract()[0].strip().split(
+        #         ' ')[0]
+        #
+        # review_url = "http://allrecipes.com/recipe/getreviews/?recipeid=" + recipe_id +
+        # "&pagenumber=1&pagesize=" + review_count + "&recipeType=Recipe&sortBy=MostHelpful"
 
         url = "https://apps.allrecipes.com/v1/recipes/" + recipe_id + "?isMetric=true&servings=4"
-        # test= "https://apps.allrecipes.com/v1/recipes/17092/reviews/?page=1&pagesize=324&sorttype=HelpfulCountDescending"
+        # test = "https://apps.allrecipes.com/v1/recipes/17092/reviews/?page=1&pagesize=324&sorttype=HelpfulCountDescending"
 
-        yield Request(url, method="GET", headers=headers, callback=self.parse_json, meta={'recipe': recipe})
-
+        yield Request(
+            url,
+            method="GET",
+            headers=headers,
+            callback=self.parse_json,
+            meta={'recipe': recipe})
 
     def parse_json(self, response):
         jsonresponse = json.loads(response.body_as_unicode())
@@ -131,47 +164,69 @@ class AllrecipesSpider(CrawlSpider):
 
         nutrients = []
 
-        for nutrient_type in ('fat', 'calories', 'cholesterol', 'sodium',
-                              'carbohydrates', 'protein', 'folate', 'magnesium', 'vitaminB6', 'niacin',
-                               'thiamin', 'iron', 'calcium', 'vitaminC', 'vitaminA', 'sugars', 'potassium',
-                               'saturatedFat', 'caloriesFromFat', 'fiber' ):
+        for nutrient_type in (
+                'fat', 'calories', 'cholesterol', 'sodium', 'carbohydrates',
+                'protein', 'folate', 'magnesium', 'vitaminB6', 'niacin',
+                'thiamin', 'iron', 'calcium', 'vitaminC', 'vitaminA', 'sugars',
+                'potassium', 'saturatedFat', 'caloriesFromFat', 'fiber'):
 
             nutrient = Nutrition()
             nutrient['name'] = jsonresponse['nutrition'][nutrient_type]["name"]
-            nutrient['amount'] = jsonresponse['nutrition'][nutrient_type]["amount"]
+            nutrient['amount'] = jsonresponse['nutrition'][nutrient_type][
+                "amount"]
             nutrient['unit'] = jsonresponse['nutrition'][nutrient_type]["unit"]
-            nutrient['display_value'] = jsonresponse['nutrition'][nutrient_type]["displayValue"]
-            nutrient['percent_daily_value'] = jsonresponse['nutrition'][nutrient_type]["percentDailyValue"]
+            nutrient['display_value'] = jsonresponse['nutrition'][
+                nutrient_type]["displayValue"]
+            nutrient['percent_daily_value'] = jsonresponse['nutrition'][
+                nutrient_type]["percentDailyValue"]
             nutrients.append(nutrient)
-
 
         recipe["nutritions"] = nutrients
         recipeID = jsonresponse["recipeID"]
         recipe_review_count = jsonresponse["reviewCount"]
 
-        review_url = "http://allrecipes.com/recipe/getreviews/?recipeid="+ str(recipeID) + "&pagenumber=1&pagesize=" + str(recipe_review_count) + "&recipeType=Recipe&sortBy=MostHelpful"
-        print review_url
-        yield Request(review_url, method="GET", callback=self.parse_reviews, meta={'recipe': recipe})
+        review_url = "https://www.allrecipes.com/recipe/getreviews/?recipeid=" + str(
+            recipeID) + "&pagenumber=1&pagesize=" + str(
+                recipe_review_count) + "&recipeType=Recipe&sortBy=MostHelpful"
+        # print review_url
+        yield Request(
+            review_url,
+            method="GET",
+            callback=self.parse_reviews,
+            meta={'recipe': recipe})
 
     def parse_reviews(self, response):
-        reviews_html = response.xpath('//div[@class="review-container clearfix"]')
+        reviews_html = response.xpath(
+            '//div[@class="review-container clearfix"]')
         recipe = response.meta['recipe']
         print "parse............review"
         reviews = []
 
         for items in reviews_html:
             review = Review()
-            review['reviewer_name'] = items.xpath('normalize-space(.//h4[@itemprop="author"])').extract_first()
+            review['reviewer_name'] = items.xpath(
+                'normalize-space(.//h4[@itemprop="author"])').extract_first()
             # reviewer_name = items.xpath('normalize-space(.//h4[@itemprop="author"])').extract_first()
-            review['reviewer_id'] = "".join(re.findall('\d+', items.xpath('.//div[@class="recipe-details-cook-stats-container"]/a/@href').extract_first()))
+            review['reviewer_id'] = int("".join(
+                re.findall('\d+', items.xpath(
+                    './/div[@class="recipe-details-cook-stats-container"]/a/@href').extract_first(
+                    ))))
             # reviewer_id = re.findall('\d+', items.xpath('.//div[@class="recipe-details-cook-stats-container"]/a/@href').extract_first())
-            review['reviewer_favs'] = items.xpath('.//ul[@class="cook-details__favorites favorites-count"]/li/format-large-number/@number').extract_first()
+            review['reviewer_favs'] = int(
+                items.xpath(
+                    './/ul[@class="cook-details__favorites favorites-count"]/li/format-large-number/@number').extract_first(
+                    ))
             # reviewer_favs = items.xpath('.//ul[@class="cook-details__favorites favorites-count"]/li/format-large-number/@number').extract_first()
-            review['reviewer_recipe_made_count'] = items.xpath('.//ul[@class="cook-details__recipes-made recipes-made-count"]/li/format-large-number/@number').extract_first()
+            review['reviewer_recipe_made_count'] = int(
+                items.xpath(
+                    './/ul[@class="cook-details__recipes-made recipes-made-count"]/li/format-large-number/@number').extract_first(
+                    ))
             # reviewer_recipe_made_count = items.xpath('.//ul[@class="cook-details__recipes-made recipes-made-count"]/li/format-large-number/@number').extract_first()
-            review['reviewer_recipe_rating'] = items.xpath('.//meta[@itemprop="ratingValue"]/@content').extract_first()
+            review['reviewer_recipe_rating'] = int(
+                items.xpath(
+                    './/meta[@itemprop="ratingValue"]/@content').extract_first(
+                    ))
             # reviewer_recipe_rating = items.xpath('.//meta[@itemprop="ratingValue"]/@content').extract_first()
-
 
             reviews.append(review)
             # print reviewer_name

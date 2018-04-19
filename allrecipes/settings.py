@@ -17,13 +17,34 @@ NEWSPIDER_MODULE = 'allrecipes.spiders'
 #DOWNLOAD_DELAY = .25
 #RANDOMIZE_DOWNLOAD_DELAY = True
 
+DOWNLOAD_DELAY = 1.5
+AUTOTHROTTLE_ENABLED = True
+AUTOTHROTTLE_START_DELAY = 2
+AUTOTHROTTLE_TARGET_CONCURRENCY = 6
+
+
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'allrecipes (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
-HTTPCACHE_ENABLED = False
+HTTPCACHE_ENABLED = True
+HTTPCACHE_IGNORE_HTTP_CODES = [301, 302, 500, 503]
+# HTTPCACHE_STORAGE = 'scrapy_httpcache.extensions.httpcache_storage.MongoDBCacheStorage'
+HTTPCACHE_MONGODB_HOST = '127.0.0.1'
+HTTPCACHE_MONGODB_PORT = 27017
+# HTTPCACHE_MONGODB_USERNAME = 'root'
+# HTTPCACHE_MONGODB_PASSWORD = 'password'
+# HTTPCACHE_MONGODB_AUTH_DB = 'admin'
+HTTPCACHE_MONGODB_DB = 'recipe_db'
+HTTPCACHE_MONGODB_COLL = 'rezepte'
 
+
+
+LOG_FILE = 'scrapy.log'
+LOG_STDOUT = True
+DUPEFILTER_DEBUG = True
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html

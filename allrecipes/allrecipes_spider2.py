@@ -22,6 +22,7 @@ class AllrecipesSpider2(scrapy.Spider):
 
     start_urls = [
         'http://allrecipes.com/recipes/722/world-cuisine/european/german/page=1',
+        'http://allrecipes.com/recipes/80/main-dish/'
     ]
 
 
