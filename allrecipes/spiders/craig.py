@@ -13,7 +13,7 @@ class Scrapy1Spider(CrawlSpider):
     rules = (Rule(LinkExtractor(allow=(), restrict_xpaths=('//a[@class="button next"]',)), callback="parse_page", follow= True),)
 
     def parse_page(self, response):
-        print response.url
+        print(response.url)
         # site = html.fromstring(response.body_as_unicode())
         # titles = site.xpath('//div[@class="content"]/p[@class="row"]')
         # print len(titles), 'AAAA'

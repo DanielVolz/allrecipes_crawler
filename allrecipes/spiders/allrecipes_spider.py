@@ -9,6 +9,7 @@ from scrapy.http.request import Request
 from scrapy.linkextractors import LinkExtractor
 from scrapy.selector import Selector
 from scrapy.spiders import CrawlSpider, Rule
+from scrapy.http import TextResponse
 
 
 class AllrecipesSpider(CrawlSpider):
@@ -66,14 +67,15 @@ class AllrecipesSpider(CrawlSpider):
         #         tags=('button'), attrs=('href', )), follow=True),
 
         # Extract recipes
-        Rule(
-            LinkExtractor(allow=(r'recipe/\d+.*', )), callback='parse_recipe'))
+        Rule(LinkExtractor(allow=(r'recipe/\d+.*', )), callback='parse_recipe'),)
 
     def parse_recipe(self, response):
         print('Processing..' + response.url)
 
-        cooke_id = response.headers.getlist('Set-Cookie')[1].split(";")[
-            0].split("=")
+        page = TextResponse(response.url, headers=response.headers, body=response.body, encoding='utf-8')
+
+        cooke_id = response.headers.getlist('Set-Cookie')[1].split(";")[0].split("=")
+
 
         headers = {
             'accept': "*/*",
@@ -87,8 +89,7 @@ class AllrecipesSpider(CrawlSpider):
         m = re.search('\/recipe\/(\d+)', recipe_url)
         recipe_id = m.group(1)
 
-        category_html = response.xpath("/html/body/script[7]/text()").extract(
-        )[0]
+        category_html = response.xpath("/html/body/script[7]/text()").extract()[0]
         category_html.strip()
 
         m2 = re.search('RdpInferredTastePrefs\s=\s+(.*])', category_html)
@@ -172,22 +173,17 @@ class AllrecipesSpider(CrawlSpider):
 
             nutrient = Nutrition()
             nutrient['name'] = jsonresponse['nutrition'][nutrient_type]["name"]
-            nutrient['amount'] = jsonresponse['nutrition'][nutrient_type][
-                "amount"]
+            nutrient['amount'] = jsonresponse['nutrition'][nutrient_type]["amount"]
             nutrient['unit'] = jsonresponse['nutrition'][nutrient_type]["unit"]
-            nutrient['display_value'] = jsonresponse['nutrition'][
-                nutrient_type]["displayValue"]
-            nutrient['percent_daily_value'] = jsonresponse['nutrition'][
-                nutrient_type]["percentDailyValue"]
+            nutrient['display_value'] = jsonresponse['nutrition'][nutrient_type]["displayValue"]
+            nutrient['percent_daily_value'] = jsonresponse['nutrition'][nutrient_type]["percentDailyValue"]
             nutrients.append(nutrient)
 
         recipe["nutritions"] = nutrients
         recipeID = jsonresponse["recipeID"]
         recipe_review_count = jsonresponse["reviewCount"]
 
-        review_url = "https://www.allrecipes.com/recipe/getreviews/?recipeid=" + str(
-            recipeID) + "&pagenumber=1&pagesize=" + str(
-                recipe_review_count) + "&recipeType=Recipe&sortBy=MostHelpful"
+        review_url = "https://www.allrecipes.com/recipe/getreviews/?recipeid=" + str(recipeID) + "&pagenumber=1&pagesize=" + str(recipe_review_count) + "&recipeType=Recipe&sortBy=MostHelpful"
         # print review_url
         yield Request(
             review_url,
@@ -199,7 +195,7 @@ class AllrecipesSpider(CrawlSpider):
         reviews_html = response.xpath(
             '//div[@class="review-container clearfix"]')
         recipe = response.meta['recipe']
-        print "parse............review"
+        print("parse............review")
         reviews = []
 
         for items in reviews_html:
@@ -209,23 +205,19 @@ class AllrecipesSpider(CrawlSpider):
             # reviewer_name = items.xpath('normalize-space(.//h4[@itemprop="author"])').extract_first()
             review['reviewer_id'] = int("".join(
                 re.findall('\d+', items.xpath(
-                    './/div[@class="recipe-details-cook-stats-container"]/a/@href').extract_first(
-                    ))))
+                    './/div[@class="recipe-details-cook-stats-container"]/a/@href').extract_first())))
             # reviewer_id = re.findall('\d+', items.xpath('.//div[@class="recipe-details-cook-stats-container"]/a/@href').extract_first())
             review['reviewer_favs'] = int(
                 items.xpath(
-                    './/ul[@class="cook-details__favorites favorites-count"]/li/format-large-number/@number').extract_first(
-                    ))
+                    './/ul[@class="cook-details__favorites favorites-count"]/li/format-large-number/@number').extract_first())
             # reviewer_favs = items.xpath('.//ul[@class="cook-details__favorites favorites-count"]/li/format-large-number/@number').extract_first()
             review['reviewer_recipe_made_count'] = int(
                 items.xpath(
-                    './/ul[@class="cook-details__recipes-made recipes-made-count"]/li/format-large-number/@number').extract_first(
-                    ))
+                    './/ul[@class="cook-details__recipes-made recipes-made-count"]/li/format-large-number/@number').extract_first())
             # reviewer_recipe_made_count = items.xpath('.//ul[@class="cook-details__recipes-made recipes-made-count"]/li/format-large-number/@number').extract_first()
             review['reviewer_recipe_rating'] = int(
                 items.xpath(
-                    './/meta[@itemprop="ratingValue"]/@content').extract_first(
-                    ))
+                    './/meta[@itemprop="ratingValue"]/@content').extract_first())
             # reviewer_recipe_rating = items.xpath('.//meta[@itemprop="ratingValue"]/@content').extract_first()
 
             reviews.append(review)
