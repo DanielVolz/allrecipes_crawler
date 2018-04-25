@@ -5,16 +5,18 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
+
 import logging
 import pymongo
 
 class MongoPipeline(object):
-    collection_name = 'rezepte'
+    collection_name = 'rezepte_2'
     # collection_name = 'test1'
 
     def __init__(self, mongo_uri, mongo_db):
         self.mongo_uri = mongo_uri
         self.mongo_db = mongo_db
+        self.ids_seen = set()
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -35,11 +37,18 @@ class MongoPipeline(object):
         self.client.close()
 
     def process_item(self, item, spider):
+        if item['id'] in self.ids_seen:
+            logging.debug("Duplicate item found: "+str(item['id']))
+        else:
+            self.ids_seen.add(item['id'])
+            self.db[self.collection_name].insert(dict(item))
+            logging.debug("Post added to MongoDB reciepe_name: "+item['name']+ " id: "+ str(item['id']))
+
         ## how to handle each post
         # dup_check = self.db[self.collection_name].find({'id':item['id']}).count()
         # if dup_check == 0 :
-        self.db[self.collection_name].insert(dict(item))
-        logging.debug("Post added to MongoDB")
+        #self.db[self.collection_name].insert(dict(item))
+        #logging.debug("Post added to MongoDB")
         # else:
            # logging.debug("Post already exists")
         # return item
