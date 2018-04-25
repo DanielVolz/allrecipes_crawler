@@ -15,7 +15,7 @@ from scrapy.http import TextResponse
 
 class AllrecipesSpider(CrawlSpider):
     name = 'allrecipes'
-    # allowed_domains = ['allrecipes.com'] 
+    # allowed_domains = ['allrecipes.com']
     download_delay = 1.5
 
     start_urls = [
