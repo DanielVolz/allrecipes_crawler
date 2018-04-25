@@ -18,63 +18,67 @@ NEWSPIDER_MODULE = 'allrecipes.spiders'
 #RANDOMIZE_DOWNLOAD_DELAY = True
 
 DOWNLOAD_DELAY = 1.5
+
 AUTOTHROTTLE_ENABLED = True
+# The initial download delay
 AUTOTHROTTLE_START_DELAY = 2
+# The maximum download delay to be set in case of high latencies
+AUTOTHROTTLE_MAX_DELAY = 60
+# The average number of requests Scrapy should be sending in parallel to
+# each remote server
 AUTOTHROTTLE_TARGET_CONCURRENCY = 6
+# Enable showing throttling stats for every response received:
+AUTOTHROTTLE_DEBUG = True
 
-EED_EXPORT_ENCODING = 'utf-8'
-
+#DUPEFILTER_CLASS = 'scrapy.dupefilters.BaseDupeFilter'
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'allrecipes (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
-#HTTPCACHE_ENABLED = True
-#HTTPCACHE_IGNORE_HTTP_CODES = [301, 302, 500, 503]
-# HTTPCACHE_STORAGE = 'scrapy_httpcache.extensions.httpcache_storage.MongoDBCacheStorage'
-#HTTPCACHE_MONGODB_HOST = '127.0.0.1'
-#HTTPCACHE_MONGODB_PORT = 27017
-# HTTPCACHE_MONGODB_USERNAME = 'root'
-# HTTPCACHE_MONGODB_PASSWORD = 'password'
-# HTTPCACHE_MONGODB_AUTH_DB = 'admin'
-#HTTPCACHE_MONGODB_DB = 'recipe_db'
-#HTTPCACHE_MONGODB_COLL = 'rezepte_1'
+
+
 
 # -----------------------------------------------------------------------------
 # SCRAPY HTTPCACHE SETTINGS
 # -----------------------------------------------------------------------------
-DOWNLOADER_MIDDLEWARES = {}
+DOWNLOADER_MIDDLEWARES = {
+    'scrapy.downloadermiddlewares.retry.RetryMiddleware': 543,
+    'scrapy.downloadermiddlewares.stats.DownloaderStats': 850,
+    'scrapy.downloadermiddlewares.httpcache.HttpCacheMiddleware': 900,
+}
+HTTPCACHE_POLICY = 'scrapy.extensions.httpcache.RFC2616Policy'
 
-DOWNLOADER_MIDDLEWARES.update({
-    'scrapy.downloadermiddlewares.httpcache.HttpCacheMiddleware': None,
-    'scrapy_httpcache.downloadermiddlewares.httpcache.AsyncHttpCacheMiddleware': 900,
-})
+# DOWNLOADER_MIDDLEWARES.update({
+#     'scrapy_httpcache.downloadermiddlewares.httpcache.AsyncHttpCacheMiddleware': 900,
+#
+# })
 
 HTTPCACHE_ENABLED = True
 HTTPCACHE_IGNORE_HTTP_CODES = [301, 302, 500, 503]
-HTTPCACHE_STORAGE = 'scrapy_httpcache.extensions.httpcache_storage.MongoDBCacheStorage'
-HTTPCACHE_MONGODB_HOST = '127.0.0.1'
-HTTPCACHE_MONGODB_PORT = 27017
-HTTPCACHE_MONGODB_USERNAME = ''
-HTTPCACHE_MONGODB_PASSWORD = ''
-HTTPCACHE_MONGODB_AUTH_DB = ''
-HTTPCACHE_MONGODB_DB = 'cache_storage'
-HTTPCACHE_MONGODB_COLL = 'cache'
-
-# -----------------------------------------------------------------------------
-# SCRAPY HTTPCACHE BANNED SETTINGS (optional)
-# -----------------------------------------------------------------------------
-BANNED_STORAGE = 'scrapy_httpcache.extensions.banned_storage.MongoBannedStorage'
-
-# -----------------------------------------------------------------------------
-# SCRAPY HTTPCACHE REQUEST ERROR SETTINGS (optional)
-# -----------------------------------------------------------------------------
-REQUEST_ERROR_STORAGE = 'scrapy_httpcache.extensions.request_error_storage.MongoRequestErrorStorage'
+# HTTPCACHE_STORAGE = 'scrapy_httpcache.extensions.httpcache_storage.MongoDBCacheStorage'
+# HTTPCACHE_MONGODB_HOST = '127.0.0.1'
+# HTTPCACHE_MONGODB_PORT = 27017
+# HTTPCACHE_MONGODB_USERNAME = ''
+# HTTPCACHE_MONGODB_PASSWORD = ''
+# HTTPCACHE_MONGODB_AUTH_DB = ''
+# HTTPCACHE_MONGODB_DB = 'cache_storage'
+# HTTPCACHE_MONGODB_COLL = 'cache'
+#
+# # -----------------------------------------------------------------------------
+# # SCRAPY HTTPCACHE BANNED SETTINGS (optional)
+# # -----------------------------------------------------------------------------
+# BANNED_STORAGE = 'scrapy_httpcache.extensions.banned_storage.MongoBannedStorage'
+#
+# # -----------------------------------------------------------------------------
+# # SCRAPY HTTPCACHE REQUEST ERROR SETTINGS (optional)
+# # -----------------------------------------------------------------------------
+# REQUEST_ERROR_STORAGE = 'scrapy_httpcache.extensions.request_error_storage.MongoRequestErrorStorage'
 
 
 
 LOG_FILE = 'scrapy.log'
-#LOG_STDOUT = True
+LOG_STDOUT = True
 DUPEFILTER_DEBUG = True
 
 # Configure item pipelines

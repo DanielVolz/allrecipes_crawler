@@ -3,6 +3,7 @@ import os
 import re
 import urllib
 from decimal import Decimal
+import logging
 
 from allrecipes.items import Category, Ingredient, Nutrition, Recipe, Review
 from scrapy.http.request import Request
@@ -15,13 +16,11 @@ from scrapy.http import TextResponse
 class AllrecipesSpider(CrawlSpider):
     name = 'allrecipes'
     # allowed_domains = ['allrecipes.com']
-    # download_delay = 3
+    download_delay = 1.5
 
     start_urls = [
-        # 'http://allrecipes.com/recipes/17562/dinner/',
-        # 'http://allrecipes.com/recipes/80/main-dish/',
-        # 'https://www.allrecipes.com/recipes/95/pasta-and-noodles/',
-        'https://www.allrecipes.com/recipes/80/main-dish/',
+        # 'https://www.allrecipes.com/recipes/17562/dinner/',
+        # 'https://www.allrecipes.com/recipes/80/main-dish/',
         'https://www.allrecipes.com/recipes/1227/everyday-cooking/vegan/',
         'https://www.allrecipes.com/recipes/87/everyday-cooking/vegetarian/',
     ]
@@ -70,26 +69,25 @@ class AllrecipesSpider(CrawlSpider):
         Rule(LinkExtractor(allow=(r'recipe/\d+.*', )), callback='parse_recipe'),)
 
     def parse_recipe(self, response):
-        print('Processing..' + response.url)
+        logging.debug('Call parse_recipe: ' + response.url)
 
         page = TextResponse(response.url, headers=response.headers, body=response.body, encoding='utf-8')
 
-        cooke_id = response.headers.getlist('Set-Cookie')[1].split(";")[0].split("=")
-
+        cooke_id = response.headers.getlist(b'Set-Cookie')[1].split(b";")[0].split(b"=")
 
         headers = {
             'accept': "*/*",
             'user-agent':
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36"
             + "(KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36",
-            'Authorization': "Bearer " + cooke_id[1] + "=="
+            'Authorization': "Bearer " + cooke_id[1].decode('utf-8') + "=="
         }
 
-        recipe_url = response.url
+        recipe_url = page.url
         m = re.search('\/recipe\/(\d+)', recipe_url)
         recipe_id = m.group(1)
 
-        category_html = response.xpath("/html/body/script[7]/text()").extract()[0]
+        category_html = page.xpath("/html/body/script[7]/text()").extract()[0]
         category_html.strip()
 
         m2 = re.search('RdpInferredTastePrefs\s=\s+(.*])', category_html)
@@ -122,7 +120,7 @@ class AllrecipesSpider(CrawlSpider):
         url = "https://apps.allrecipes.com/v1/recipes/" + recipe_id + "?isMetric=true&servings=4"
         # test = "https://apps.allrecipes.com/v1/recipes/17092/reviews/?page=1&pagesize=324&sorttype=HelpfulCountDescending"
 
-        yield Request(
+        return Request(
             url,
             method="GET",
             headers=headers,
@@ -130,7 +128,9 @@ class AllrecipesSpider(CrawlSpider):
             meta={'recipe': recipe})
 
     def parse_json(self, response):
+
         jsonresponse = json.loads(response.body_as_unicode())
+        logging.debug("Call parse_json: recipe_name: "+ jsonresponse["title"]+ " id: "+str(jsonresponse["recipeID"]))
 
         recipe = response.meta['recipe']
         recipe["name"] = jsonresponse["title"]
@@ -185,17 +185,25 @@ class AllrecipesSpider(CrawlSpider):
 
         review_url = "https://www.allrecipes.com/recipe/getreviews/?recipeid=" + str(recipeID) + "&pagenumber=1&pagesize=" + str(recipe_review_count) + "&recipeType=Recipe&sortBy=MostHelpful"
         # print review_url
-        yield Request(
-            review_url,
-            method="GET",
-            callback=self.parse_reviews,
-            meta={'recipe': recipe})
+        #download_delay = 5
+        if recipe['review_count'] > 6000 or recipe['review_count'] == 0:
+            logging.debug("review count too high or 0")
+            return
+        else:
+            return Request(
+                review_url,
+                method="GET",
+                callback=self.parse_reviews,
+                meta={'recipe': recipe})
+
 
     def parse_reviews(self, response):
-        reviews_html = response.xpath(
-            '//div[@class="review-container clearfix"]')
+
+        reviews_html = response.xpath('//div[@class="review-container clearfix"]')
         recipe = response.meta['recipe']
-        print("parse............review")
+
+        logging.debug("Call parse_reviews: reciepe_name: "+ recipe['name']+" id: "+str(recipe['id']))
+
         reviews = []
 
         for items in reviews_html:
@@ -228,4 +236,5 @@ class AllrecipesSpider(CrawlSpider):
             # print reviewer_recipe_rating
 
         recipe["reviews"] = reviews
+        logging.debug("Item returned: reciepe_name: "+ recipe['name']+" id: "+str(recipe['id']))
         return recipe
