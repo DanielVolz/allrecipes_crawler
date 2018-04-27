@@ -16,16 +16,16 @@ from scrapy.http import TextResponse
 class AllrecipesSpider(CrawlSpider):
     name = 'allrecipes'
     # allowed_domains = ['allrecipes.com']
-    download_delay = 1.5
+    # download_delay = 2
 
     start_urls = [
         # 'https://www.allrecipes.com/recipes/17562/dinner/',
         # 'https://www.allrecipes.com/recipes/80/main-dish/',
-        'https://www.allrecipes.com/recipes/1227/everyday-cooking/vegan/',
-        'https://www.allrecipes.com/recipes/87/everyday-cooking/vegetarian/',
+        'https://www.allrecipes.com/recipes/1227/everyday-cooking/vegan/?page=1',
+        # 'https://www.allrecipes.com/recipes/87/everyday-cooking/vegetarian/',
     ]
 
-    rules = (
+
         # Follow pagination
         # Rule(
         #     LinkExtractor(restrict_xpaths="//link[contains(@href, 'page')]"),
@@ -65,8 +65,34 @@ class AllrecipesSpider(CrawlSpider):
         #     LinkExtractor(
         #         tags=('button'), attrs=('href', )), follow=True),
 
+
+        # https:\/\/www\.allrecipes\.com\/recipes\/.+\/\?page=\d+
         # Extract recipes
-        Rule(LinkExtractor(allow=(r'recipe/\d+.*', )), callback='parse_recipe'),)
+        #Rule(LinkExtractor(allow=(r'recipe/\d+.*', )), callback='parse_recipe')
+
+        # Rule(
+        #     LinkExtractor(
+        #         allow=(r'https:\/\/www\.allrecipes\.com\/recipes\/.+\/\?page=\d+'),
+        #         tags=('link')),
+        #             follow=True),
+    rules = (
+            Rule(
+                LinkExtractor(
+                allow=(r'recipe/\d+.*'), tags=('href', 'a', 'link'), restrict_xpaths=('//link[@rel="next"]')),
+                        follow=True),
+            # Rule(
+            #     LinkExtractor(
+            #         allow=(r'https:\/\/www\.allrecipes\.com\/recipes\/.+\/\?page=\d+'),
+            #         tags=('link')),
+            #             follow=True),
+            Rule(
+                LinkExtractor(
+                    allow=(r'recipe/\d+.*'),),callback='parse_recipe'),
+            Rule(
+                LinkExtractor(
+                allow=(r'https:\/\/www\.allrecipes\.com\/recipes\/.+\/\?page=\d+'), tags=('href', 'a', 'link'), restrict_xpaths=('//link[@rel="next"]')),
+                        follow=True)
+            )
 
     def parse_recipe(self, response):
         logging.debug('Call parse_recipe: ' + response.url)

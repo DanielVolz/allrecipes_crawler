@@ -17,7 +17,7 @@ NEWSPIDER_MODULE = 'allrecipes.spiders'
 #DOWNLOAD_DELAY = .25
 #RANDOMIZE_DOWNLOAD_DELAY = True
 
-DOWNLOAD_DELAY = 1.5
+DOWNLOAD_DELAY = 2
 
 AUTOTHROTTLE_ENABLED = True
 # The initial download delay
@@ -30,19 +30,46 @@ AUTOTHROTTLE_TARGET_CONCURRENCY = 6
 # Enable showing throttling stats for every response received:
 AUTOTHROTTLE_DEBUG = True
 
-#DUPEFILTER_CLASS = 'scrapy.dupefilters.BaseDupeFilter'
+DUPEFILTER_CLASS = 'scrapy.dupefilters.BaseDupeFilter'
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'allrecipes (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
+# Retry many times since proxies often fail
+RETRY_TIMES = 10
+# Retry on most error codes since proxies fail for different reasons
+RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
 
+# DOWNLOADER_MIDDLEWARES = {
+#     'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,
+#     'scrapy_proxies.RandomProxy': 100,
+#     'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 110,
+# }
+
+# Proxy list containing entries like
+# http://host1:port
+# http://username:password@host2:port
+# http://host3:port
+# ...
+PROXY_LIST = 'proxylist.txt'
+
+# Proxy mode
+# 0 = Every requests have different proxy
+# 1 = Take only one proxy from the list and assign it to every requests
+# 2 = Put a custom proxy to use in the settings
+PROXY_MODE = 0
+
+# If proxy mode is 2 uncomment this sentence :
+#CUSTOM_PROXY = "http://host1:port"
 
 # -----------------------------------------------------------------------------
 # SCRAPY HTTPCACHE SETTINGS
 # -----------------------------------------------------------------------------
 DOWNLOADER_MIDDLEWARES = {
+    'scrapy_proxies.RandomProxy': None,
+    'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': None,
     'scrapy.downloadermiddlewares.retry.RetryMiddleware': 543,
     'scrapy.downloadermiddlewares.stats.DownloaderStats': 850,
     'scrapy.downloadermiddlewares.httpcache.HttpCacheMiddleware': 900,
@@ -54,7 +81,7 @@ HTTPCACHE_POLICY = 'scrapy.extensions.httpcache.RFC2616Policy'
 #
 # })
 
-HTTPCACHE_ENABLED = True
+HTTPCACHE_ENABLED = False
 HTTPCACHE_IGNORE_HTTP_CODES = [301, 302, 500, 503]
 # HTTPCACHE_STORAGE = 'scrapy_httpcache.extensions.httpcache_storage.MongoDBCacheStorage'
 # HTTPCACHE_MONGODB_HOST = '127.0.0.1'
