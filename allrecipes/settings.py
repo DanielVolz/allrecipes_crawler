@@ -14,11 +14,11 @@ USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0) Gecko/20100
 SPIDER_MODULES = ['allrecipes.spiders']
 NEWSPIDER_MODULE = 'allrecipes.spiders'
 
-#DOWNLOAD_DELAY = .25
 #RANDOMIZE_DOWNLOAD_DELAY = True
 
 DOWNLOAD_DELAY = 2
 
+### AUTOTHROTTLE SETTINGS
 AUTOTHROTTLE_ENABLED = True
 # The initial download delay
 AUTOTHROTTLE_START_DELAY = 2
@@ -29,6 +29,9 @@ AUTOTHROTTLE_MAX_DELAY = 60
 AUTOTHROTTLE_TARGET_CONCURRENCY = 6
 # Enable showing throttling stats for every response received:
 AUTOTHROTTLE_DEBUG = True
+
+
+
 
 DUPEFILTER_CLASS = 'scrapy.dupefilters.BaseDupeFilter'
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
@@ -41,12 +44,6 @@ ROBOTSTXT_OBEY = False
 RETRY_TIMES = 10
 # Retry on most error codes since proxies fail for different reasons
 RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
-
-# DOWNLOADER_MIDDLEWARES = {
-#     'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,
-#     'scrapy_proxies.RandomProxy': 100,
-#     'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 110,
-# }
 
 # Proxy list containing entries like
 # http://host1:port

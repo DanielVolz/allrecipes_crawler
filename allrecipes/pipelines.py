@@ -37,25 +37,10 @@ class MongoPipeline(object):
         self.client.close()
 
     def process_item(self, item, spider):
+        # Filter Items with the same 'id'
         if item['id'] in self.ids_seen:
             logging.debug("Duplicate item found: "+str(item['id']))
         else:
             self.ids_seen.add(item['id'])
             self.db[self.collection_name].insert(dict(item))
             logging.debug("Post added to MongoDB reciepe_name: "+item['name']+ " id: "+ str(item['id']))
-
-        ## how to handle each post
-        # dup_check = self.db[self.collection_name].find({'id':item['id']}).count()
-        # if dup_check == 0 :
-        #self.db[self.collection_name].insert(dict(item))
-        #logging.debug("Post added to MongoDB")
-        # else:
-           # logging.debug("Post already exists")
-        # return item
-
-        # self.db[self.collection_name].insert(dict(item))
-        # logging.debug("Post added to MongoDB")
-        # return item
-    #
-    # def process_item(self, item, spider):
-    #     return item
