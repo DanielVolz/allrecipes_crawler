@@ -9,9 +9,9 @@
 import logging
 import pymongo
 
+
 class MongoPipeline(object):
     collection_name = 'rezepte_2'
-    # collection_name = 'test1'
 
     def __init__(self, mongo_uri, mongo_db):
         self.mongo_uri = mongo_uri
@@ -20,20 +20,20 @@ class MongoPipeline(object):
 
     @classmethod
     def from_crawler(cls, crawler):
-        ## pull in information from settings.py
+        # pull in information from settings.py
         return cls(
             mongo_uri=crawler.settings.get('MONGO_URI'),
             mongo_db=crawler.settings.get('MONGO_DATABASE')
         )
 
     def open_spider(self, spider):
-        ## initializing spider
-        ## opening db connection
+        # initializing spider
+        # opening db connection
         self.client = pymongo.MongoClient(self.mongo_uri)
         self.db = self.client[self.mongo_db]
 
     def close_spider(self, spider):
-        ## clean up when spider is closed
+        # clean up when spider is closed
         self.client.close()
 
     def process_item(self, item, spider):
@@ -43,4 +43,4 @@ class MongoPipeline(object):
         else:
             self.ids_seen.add(item['id'])
             self.db[self.collection_name].insert(dict(item))
-            logging.debug("Post added to MongoDB reciepe_name: "+item['name']+ " id: "+ str(item['id']))
+            logging.debug("Post added to MongoDB reciepe_name: "+item['name'] + " id: " + str(item['id']))

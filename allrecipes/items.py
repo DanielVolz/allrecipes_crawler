@@ -7,6 +7,7 @@
 
 from scrapy.item import Item, Field
 
+
 class Review(Item):
     reviewer_name = Field()
     reviewer_id = Field()
@@ -26,6 +27,7 @@ class Nutrition(Item):
 
 class Category(Item):
     name = Field()
+
 
 class Ingredient(Item):
     name = Field()

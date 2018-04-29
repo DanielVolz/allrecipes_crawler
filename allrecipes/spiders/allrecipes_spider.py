@@ -43,8 +43,9 @@ class AllrecipesSpider(CrawlSpider):
                 allow=(r'recipe/\d+.*'),), callback='parse_recipe'),
         Rule(
             LinkExtractor(
-                allow=(r'https:\/\/www\.allrecipes\.com\/recipes\/.+\/\?page=\d+'), tags=('href', 'a', 'link'), restrict_xpaths=('//link[@rel="next"]')),
-            follow=True)
+                allow=(r'https:\/\/www\.allrecipes\.com\/recipes\/.+\/\?page=\d+'),
+                tags=('href', 'a', 'link'),
+                restrict_xpaths=('//link[@rel="next"]')), follow=True)
     )
 
     def parse_recipe(self, response):
@@ -182,12 +183,17 @@ class AllrecipesSpider(CrawlSpider):
             review['reviewer_id'] = int("".join(
                 re.findall('\d+', items.xpath(
                     './/div[@class="recipe-details-cook-stats-container"]/a/@href').extract_first())))
+
             review['reviewer_favs'] = int(
                 items.xpath(
-                    './/ul[@class="cook-details__favorites favorites-count"]/li/format-large-number/@number').extract_first())
+                    './/ul[@class="cook-details__favorites favorites-count"]/li/format-large-number/@number').
+                extract_first())
+
             review['reviewer_recipe_made_count'] = int(
                 items.xpath(
-                    './/ul[@class="cook-details__recipes-made recipes-made-count"]/li/format-large-number/@number').extract_first())
+                    './/ul[@class="cook-details__recipes-made recipes-made-count"]/' +
+                    'li/format-large-number/@number').extract_first())
+
             review['reviewer_recipe_rating'] = int(
                 items.xpath(
                     './/meta[@itemprop="ratingValue"]/@content').extract_first())
