@@ -21,23 +21,26 @@ class AllrecipesSpider(CrawlSpider):
 
     start_urls = [
         # 'https://www.allrecipes.com/recipes/17562/dinner/',
-        # 'https://www.allrecipes.com/recipes/80/main-dish/',
-        'https://www.allrecipes.com/recipes/1227/everyday-cooking/vegan/?page=1',
-        # 'https://www.allrecipes.com/recipes/87/everyday-cooking/vegetarian/',
+        # 'https://www.allrecipes.com/recipes/80/main-dish/?page=1',
+        # 'https://www.allrecipes.com/recipes/1227/everyday-cooking/vegan/?page=1',
+        # 'https://www.allrecipes.com/recipes/87/everyday-cooking/vegetarian/?page=1',
+        # 'https://www.allrecipes.com/?page=1',
+        'https://www.allrecipes.com/recipes/?page=1',
     ]
 
-    # Follow pagination
+    # Follow pagination - Works with: /recipes/80/main-dish/ type urls
     rules = (
-        Rule(
-
-            LinkExtractor(
-                allow=(r'recipe/\d+.*'), tags=('href', 'a', 'link'), restrict_xpaths=('//link[@rel="next"]')),
-            follow=True),
+        # Rule(
+        #     LinkExtractor(
+        #         allow=(r'recipe/\d+.*'), tags=('href', 'a', 'link'),
+        #         restrict_xpaths=('//link[@rel="next"]')),
+        #     follow=True),
         # Rule(
         #     LinkExtractor(
         #         allow=(r'https:\/\/www\.allrecipes\.com\/recipes\/.+\/\?page=\d+'),
         #         tags=('link')),
-        #             follow=True),
+        #     follow=True),
+
         Rule(
             LinkExtractor(
                 allow=(r'recipe/\d+.*'),), callback='parse_recipe'),
@@ -45,22 +48,39 @@ class AllrecipesSpider(CrawlSpider):
             LinkExtractor(
                 allow=(r'https:\/\/www\.allrecipes\.com\/recipes\/.+\/\?page=\d+'),
                 tags=('href', 'a', 'link'),
-                restrict_xpaths=('//link[@rel="next"]')), follow=True)
+                restrict_xpaths=('//link[@rel="next"]')),
+            follow=True)
     )
+
+    # Follow pagination - Works with: https://www.allrecipes.com/recipes/?page=1
+    # rules = (
+    #
+    #     Rule(
+    #         LinkExtractor(
+    #             allow=(r'recipe/\d+.*'),), callback='parse_recipe'),
+    #     Rule(
+    #         LinkExtractor(
+    #             allow=(r'https:\/\/www\.allrecipes\.com\/recipes\/\?page=\d+'),
+    #             tags=('href', 'a', 'link'),
+    #             restrict_xpaths=('//link[@rel="next"]')), follow=True)
+    #
+    #
+    #
+    # )
 
     def parse_recipe(self, response):
         logging.debug('Call parse_recipe: ' + response.url)
 
         page = TextResponse(response.url, headers=response.headers, body=response.body, encoding='utf-8')
 
-        cooke_id = response.headers.getlist(b'Set-Cookie')[1].split(b";")[0].split(b"=")
+        cookie_id = response.headers.getlist(b'Set-Cookie')[1].split(b";")[0].split(b"=")
 
         headers = {
             'accept': "*/*",
             'user-agent':
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36"
             + "(KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36",
-            'Authorization': "Bearer " + cooke_id[1].decode('utf-8') + "=="
+            'Authorization': "Bearer " + cookie_id[1].decode('utf-8') + "=="
         }
 
         recipe_url = page.url
