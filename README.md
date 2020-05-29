@@ -30,7 +30,7 @@ Daniel Volz – [@daniel_vpunkt](https://twitter.com/daniel_vpunkt) – volz.dan
 
 Distributed under the MIT license. See ``LICENSE`` for more information.
 
-[https://github.com/yourname/github-link](https://github.com/dbader/)
+
 
 
 <!-- Markdown link & img dfn's -->
